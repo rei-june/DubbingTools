@@ -11,10 +11,12 @@ import {
   Loader,
   Text,
   MantineProvider,
+  Tabs,
 } from '@mantine/core';
 import { IconAlertCircle, IconCheck, IconUpload } from '@tabler/icons-react';
 import JSZip from 'jszip';
 import { processCSV } from './utils/csvProcessor';
+import { ReaperExport } from './pages/ReaperExport';
 
 function AppContent() {
   const [file, setFile] = useState(null);
@@ -128,83 +130,96 @@ function AppContent() {
 
   return (
     <Container size="sm" py="xl">
-      <Paper p="lg" radius="md" withBorder>
-        <Stack gap="lg">
-          <div>
-            <Text size="lg" fw={700} mb="xs">
-              📝 Episode Markers
-            </Text>
-            <Text size="sm" c="dimmed">
-              Generate marker files from your CSV
-            </Text>
-          </div>
+      <Tabs defaultValue="markers">
+        <Tabs.List>
+          <Tabs.Tab value="markers">📝 Markers CSV</Tabs.Tab>
+          <Tabs.Tab value="reaper">🎬 Reaper Projects</Tabs.Tab>
+        </Tabs.List>
 
-          <form onSubmit={handleSubmit}>
-            <Stack gap="md">
-              <FileInput
-                label="CSV File"
-                placeholder="Pick file"
-                icon={<IconUpload size={14} />}
-                accept=".csv"
-                value={file}
-                onChange={setFile}
-                required
-                description="Upload your episode data CSV file"
-              />
+        <Tabs.Panel value="markers">
+          <Paper p="lg" radius="md" withBorder>
+            <Stack gap="lg">
+              <div>
+                <Text size="lg" fw={700} mb="xs">
+                  📝 Episode Markers
+                </Text>
+                <Text size="sm" c="dimmed">
+                  Generate marker files from your CSV
+                </Text>
+              </div>
 
-              <TextInput
-                label="Actor Name"
-                placeholder="e.g., Rei June"
-                value={actorName}
-                onChange={(e) => setActorName(e.currentTarget.value)}
-                required
-                description="Filter markers by this actor name"
-              />
+              <form onSubmit={handleSubmit}>
+                <Stack gap="md">
+                  <FileInput
+                    label="CSV File"
+                    placeholder="Pick file"
+                    icon={<IconUpload size={14} />}
+                    accept=".csv"
+                    value={file}
+                    onChange={setFile}
+                    required
+                    description="Upload your episode data CSV file"
+                  />
 
-              <TextInput
-                label="Characters (Optional)"
-                placeholder="e.g., Character1, Character2"
-                value={characters}
-                onChange={(e) => setCharacters(e.currentTarget.value)}
-                description="Comma-separated list. Leave blank for all characters"
-              />
+                  <TextInput
+                    label="Actor Name"
+                    placeholder="e.g., Rei June"
+                    value={actorName}
+                    onChange={(e) => setActorName(e.currentTarget.value)}
+                    required
+                    description="Filter markers by this actor name"
+                  />
 
-              {status.message && (
-                <Alert
-                  icon={
-                    status.type === 'error' ? (
-                      <IconAlertCircle size={16} />
-                    ) : (
-                      <IconCheck size={16} />
-                    )
-                  }
-                  title={status.type === 'error' ? 'Error' : 'Success'}
-                  color={status.type === 'error' ? 'red' : 'green'}
-                >
-                  {status.message}
-                </Alert>
-              )}
+                  <TextInput
+                    label="Characters (Optional)"
+                    placeholder="e.g., Character1, Character2"
+                    value={characters}
+                    onChange={(e) => setCharacters(e.currentTarget.value)}
+                    description="Comma-separated list. Leave blank for all characters"
+                  />
 
-              <Group justify="flex-end" gap="sm">
-                <Button
-                  variant="default"
-                  onClick={handleReset}
-                  disabled={loading}
-                >
-                  Clear
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  leftSection={loading ? <Loader size={16} /> : null}
-                >
-                  {loading ? 'Processing...' : 'Generate & Download'}
-                </Button>
-              </Group>
+                  {status.message && (
+                    <Alert
+                      icon={
+                        status.type === 'error' ? (
+                          <IconAlertCircle size={16} />
+                        ) : (
+                          <IconCheck size={16} />
+                        )
+                      }
+                      title={status.type === 'error' ? 'Error' : 'Success'}
+                      color={status.type === 'error' ? 'red' : 'green'}
+                    >
+                      {status.message}
+                    </Alert>
+                  )}
+
+                  <Group justify="flex-end" gap="sm">
+                    <Button
+                      variant="default"
+                      onClick={handleReset}
+                      disabled={loading}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      leftSection={loading ? <Loader size={16} /> : null}
+                    >
+                      {loading ? 'Processing...' : 'Generate & Download'}
+                    </Button>
+                  </Group>
+                </Stack>
+              </form>
             </Stack>
-          </form>
-        </Stack>
-      </Paper>
+          </Paper>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="reaper">
+          <ReaperExport />
+        </Tabs.Panel>
+      </Tabs>
     </Container>
   );
 }
