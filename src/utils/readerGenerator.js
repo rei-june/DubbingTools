@@ -36,7 +36,7 @@ const REAPER_TEMPLATE = `<REAPER_PROJECT 0.1 "7.55/macOS-arm64" {TIMESTAMP} 0
   <APPLYFX_CFG
   >
   RENDER_FILE ""
-  RENDER_PATTERN {EPISODE_NUMBER}
+  RENDER_PATTERN ""
   RENDER_FMT 0 1 44100
   RENDER_1X 0
   RENDER_RANGE 1 0 0 0 1000
@@ -52,7 +52,7 @@ const REAPER_TEMPLATE = `<REAPER_PROJECT 0.1 "7.55/macOS-arm64" {TIMESTAMP} 0
   TAKELANE 1
   SAMPLERATE 44100 0 0
   <RENDER_CFG
-    ZXZhdXgBAQ==
+    ZXZhdxgBAQ==
   >
   LOCK 1
   <METRONOME 6 2
@@ -103,7 +103,7 @@ const REAPER_TEMPLATE = `<REAPER_PROJECT 0.1 "7.55/macOS-arm64" {TIMESTAMP} 0
   {MARKERS}
   <PROJBAY
   >
-  <TRACK {TRACK_ID}
+  <TRACK {TRACK_ID_1}
     NAME ""
     PEAKCOL 16576
     BEAT -1
@@ -125,7 +125,61 @@ const REAPER_TEMPLATE = `<REAPER_PROJECT 0.1 "7.55/macOS-arm64" {TIMESTAMP} 0
     INQ 0 0 0 0.5 100 0 0 100
     NCHAN 2
     FX 1
-    TRACKID {TRACK_ID}
+    TRACKID {TRACK_ID_1}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 1 0
+  >
+  <TRACK {TRACK_ID_2}
+    NAME ""
+    PEAKCOL 16576
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 1 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 0
+    REC 0 0 0 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {TRACK_ID_2}
+    PERF 0
+    MIDIOUT -1
+    MAINSEND 1 0
+  >
+  <TRACK {TRACK_ID_3}
+    NAME 01
+    PEAKCOL 16576
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 0.26351193423099 0 -1 -1 1
+    MUTESOLO 0 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    LANEREC -1 -1 -1 0
+    SEL 1
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {TRACK_ID_3}
     PERF 0
     MIDIOUT -1
     MAINSEND 1 0
@@ -164,7 +218,9 @@ function generateMarkerLine(index, marker, markerIndex) {
 
 export function generateReaperFile(episodeNumber, markerLines) {
   const timestamp = Math.floor(Date.now() / 1000);
-  const trackId = `{${uuidv4().toUpperCase()}}`;
+  const trackId1 = `{${uuidv4().toUpperCase()}}`;
+  const trackId2 = `{${uuidv4().toUpperCase()}}`;
+  const trackId3 = `{${uuidv4().toUpperCase()}}`;
 
   const markerContent = markerLines
     .map((line, idx) => {
@@ -175,9 +231,18 @@ export function generateReaperFile(episodeNumber, markerLines) {
     .filter((m) => m !== null)
     .join('\n');
 
+  // Extract first character name for render pattern
+  const firstCharacterName = markerLines
+    .map((line) => parseMarkerLine(line))
+    .find((m) => m !== null)?.character || 'Character';
+
+  const renderPattern = `${firstCharacterName}_${episodeNumber}`;
+
   const content = REAPER_TEMPLATE.replace('{TIMESTAMP}', timestamp)
-    .replace('{EPISODE_NUMBER}', episodeNumber)
-    .replace('{TRACK_ID}', trackId)
+    .replace('{EPISODE_NUMBER}', renderPattern)
+    .replace('{TRACK_ID_1}', trackId1)
+    .replace('{TRACK_ID_2}', trackId2)
+    .replace('{TRACK_ID_3}', trackId3)
     .replace('{MARKERS}', markerContent);
 
   return content;

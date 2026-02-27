@@ -97,7 +97,12 @@ export function ReaperExport() {
       const url = URL.createObjectURL(zipBuffer);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'reaper-projects.zip';
+      
+      // Generate zip filename from CSV name and actor filter
+      const csvName = file.name.replace(/\.csv$/i, '');
+      const zipFileName = `${csvName}_${actorName.replace(/\s+/g, '_')}.zip`;
+      a.download = zipFileName;
+      
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);

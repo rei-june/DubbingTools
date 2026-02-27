@@ -10,7 +10,6 @@ import {
   Alert,
   Loader,
   Text,
-  MantineProvider,
   Tabs,
 } from '@mantine/core';
 import { IconAlertCircle, IconCheck, IconUpload } from '@tabler/icons-react';
@@ -225,9 +224,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <MantineProvider>
-      <AppContent />
-    </MantineProvider>
-  );
+  return <AppContent />;
 }
