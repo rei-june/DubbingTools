@@ -232,9 +232,9 @@ export function generateReaperFile(episodeNumber, markerLines) {
     .join('\n');
 
   // Extract first character name for render pattern
-  const firstCharacterName = markerLines
-    .map((line) => parseMarkerLine(line))
-    .find((m) => m !== null)?.character || 'Character';
+  const firstCharacterName =
+    markerLines.map((line) => parseMarkerLine(line)).find((m) => m !== null)
+      ?.character || 'Character';
 
   const renderPattern = `${firstCharacterName}_${episodeNumber}`;
 

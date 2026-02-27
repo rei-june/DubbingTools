@@ -97,12 +97,12 @@ export function ReaperExport() {
       const url = URL.createObjectURL(zipBuffer);
       const a = document.createElement('a');
       a.href = url;
-      
+
       // Generate zip filename from CSV name and actor filter
       const csvName = file.name.replace(/\.csv$/i, '');
       const zipFileName = `${csvName}_${actorName.replace(/\s+/g, '_')}.zip`;
       a.download = zipFileName;
-      
+
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
@@ -136,10 +136,24 @@ export function ReaperExport() {
         <Stack gap="lg">
           <div>
             <Text size="lg" fw={700} mb="xs">
-              🎬 Reaper Projects
+              Reaper Project Generator
             </Text>
             <Text size="sm" c="dimmed">
-              Generate Reaper project files from your CSV
+              This tool will create a reaper file for every episode your
+              character(s) appear in. All the cues will be baked into the reaper
+              file as markers. The reaper file will contain 3 tracks.
+              <ol>
+                <li>Recording track</li>
+                <li>Muted alternate take track (for your convenience)</li>
+                <li>
+                  Video track - this is where the episode video goes, which you
+                  will need to add yourself.
+                </li>
+              </ol>
+              <p>
+                Any updates to the script like character cue swaps will need to
+                be added in manually by you whenever that happens.{' '}
+              </p>
             </Text>
           </div>
 
@@ -153,7 +167,8 @@ export function ReaperExport() {
                 value={file}
                 onChange={setFile}
                 required
-                description="Upload your episode data CSV file"
+                description="Upload the script for the show you're doing. This is the script tab of the  project. 
+"
               />
 
               <TextInput

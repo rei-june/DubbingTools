@@ -1,4 +1,5 @@
 # DubbingTools
+
 Scripts and web app to help with tedious dubbing processes.
 
 ## 🌐 Web Application
@@ -6,6 +7,7 @@ Scripts and web app to help with tedious dubbing processes.
 A React app using Mantine UI for generating episode marker files from CSV data.
 
 ### Features
+
 - Upload CSV files directly in the browser
 - Filter by actor name and optional character list
 - Generates ZIP files with episode marker CSVs and statistics
@@ -32,6 +34,7 @@ Output will be in the `dist/` directory, ready to deploy to GitHub Pages or any 
 ### Deployment
 
 Deploy to GitHub Pages or any static host (Vercel, Netlify, etc.):
+
 1. Push to GitHub
 2. Enable GitHub Pages → set source to `gh-pages` branch
 3. Run `npm run build && npm run deploy` (or manually push `dist/` to `gh-pages` branch)
@@ -57,5 +60,6 @@ node create-episode-markers.js <inputfile.csv> <actor-name> [characters]
 #### Output
 
 Generates the following files in the same directory as the input file:
+
 - `{episode}-markers.csv` - Marker entries with format: `#,Name,Start`
 - `{baseName}-stats.csv` - Statistics file with marker counts and cumulative progress

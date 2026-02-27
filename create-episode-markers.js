@@ -38,7 +38,9 @@ const actorFilterArg = process.argv[3];
 const inputFile = inputFileArg;
 
 if (!inputFile || !actorFilterArg) {
-  console.error('Usage: node create-episode-markers.js <inputfile.csv> <actor-name>');
+  console.error(
+    'Usage: node create-episode-markers.js <inputfile.csv> <actor-name>'
+  );
   process.exit(1);
 }
 
@@ -47,30 +49,42 @@ if (!fs.existsSync(inputFile)) {
   process.exit(1);
 }
 
-const characters = (process.argv[4] || "").split(',').map(c => c.trim()).filter(c => c.length > 0);
+const characters = (process.argv[4] || '')
+  .split(',')
+  .map((c) => c.trim())
+  .filter((c) => c.length > 0);
 
 if (characters.length > 0) {
-  console.log("Filtering for characters:", characters);
+  console.log('Filtering for characters:', characters);
 }
 
 const baseName = path.basename(inputFile, path.extname(inputFile));
 
-console.log("baseName:", baseName);
+console.log('baseName:', baseName);
 
 const outDir = path.dirname(inputFile);
 
 const episodes = new Map();
 let headerMap = null;
 
-const rl = readline.createInterface({ input: fs.createReadStream(inputFile), crlfDelay: Infinity });
+const rl = readline.createInterface({
+  input: fs.createReadStream(inputFile),
+  crlfDelay: Infinity,
+});
 rl.on('line', (line) => {
   if (!line.trim()) return;
   const cols = parseCSVLine(line);
   // header detection and map: if second column says CUE or third says Character
-  if ((cols.length > 1 && /CUE/i.test(cols[1])) || (cols.length > 2 && /Character/i.test(cols[2]))) {
+  if (
+    (cols.length > 1 && /CUE/i.test(cols[1])) ||
+    (cols.length > 2 && /Character/i.test(cols[2]))
+  ) {
     headerMap = {};
     for (let i = 0; i < cols.length; i++) {
-      const key = unquote(cols[i] || '').toLowerCase().trim().replace(/\s+/g, ' ');
+      const key = unquote(cols[i] || '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, ' ');
       headerMap[key] = i;
     }
     return;
@@ -82,7 +96,7 @@ rl.on('line', (line) => {
   const character = unquote(cols[2] || '').trim();
   const actor = unquote(cols[4] || '').trim();
 
-    console.log(episode, character, actor)
+  console.log(episode, character, actor);
 
   // prefer explicit 'Timecode Start' column if present (case-insensitive)
   let timecode = '';
@@ -133,26 +147,32 @@ rl.on('close', () => {
   const stats = new Map();
 
   let total = 0;
-    for (const [ep, data] of episodes.entries()) {
+  for (const [ep, data] of episodes.entries()) {
     total += data.markers.length;
   }
 
   let cumulative = 0;
-  
+
   for (const [ep, data] of episodes.entries()) {
     cumulative += data.markers.length;
-    stats.set(ep, { markerCount: data.markers.length, cumulative, percentage: ((cumulative / total) * 100).toFixed(2) });
+    stats.set(ep, {
+      markerCount: data.markers.length,
+      cumulative,
+      percentage: ((cumulative / total) * 100).toFixed(2),
+    });
   }
 
   const statsFile = path.join(outDir, `${baseName}-stats.csv`);
   const statsHeader = `Episode,Marker Count,Cumulative Count, Percentage Done (${total})`;
   const statsLines = [statsHeader];
   for (const [ep, stat] of stats.entries()) {
-    statsLines.push(`${ep},${stat.markerCount},${stat.cumulative},${stat.percentage}`);
+    statsLines.push(
+      `${ep},${stat.markerCount},${stat.cumulative},${stat.percentage}`
+    );
   }
 
   fs.writeFileSync(statsFile, statsLines.join('\n') + '\n', 'utf8');
- 
+
   for (const [ep, data] of episodes.entries()) {
     const outFile = path.join(outDir, `${ep}-markers.csv`);
     const header = '#,Name,Start';

@@ -38,10 +38,16 @@ export function processCSV(csvContent, actorFilter, characterFilter = []) {
     const cols = parseCSVLine(line);
 
     // header detection
-    if ((cols.length > 1 && /CUE/i.test(cols[1])) || (cols.length > 2 && /Character/i.test(cols[2]))) {
+    if (
+      (cols.length > 1 && /CUE/i.test(cols[1])) ||
+      (cols.length > 2 && /Character/i.test(cols[2]))
+    ) {
       headerMap = {};
       for (let i = 0; i < cols.length; i++) {
-        const key = unquote(cols[i] || '').toLowerCase().trim().replace(/\s+/g, ' ');
+        const key = unquote(cols[i] || '')
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, ' ');
         headerMap[key] = i;
       }
       continue;
@@ -56,7 +62,8 @@ export function processCSV(csvContent, actorFilter, characterFilter = []) {
     if (!actor || actor.indexOf(actorFilter) === -1) continue;
 
     // filter by character if specified
-    if (characterFilter.length > 0 && !characterFilter.includes(character)) continue;
+    if (characterFilter.length > 0 && !characterFilter.includes(character))
+      continue;
 
     if (!episode) continue;
 
