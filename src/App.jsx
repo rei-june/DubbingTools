@@ -1,5 +1,8 @@
-import { Container } from '@mantine/core';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ReaperExport } from './pages/ReaperExport';
+import { CharacterTracker } from './pages/CharacterTracker';
+import { NotFound } from './pages/NotFound';
+import { Footer } from './components/Footer';
 
 import '@mantine/core/styles.css';
 
@@ -8,9 +11,14 @@ import { MantineProvider } from '@mantine/core';
 function AppContent() {
   return (
     <MantineProvider>
-      <Container size="sm" py="xl">
-        <ReaperExport />
-      </Container>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<ReaperExport />} />
+          <Route path="/episode-tracker" element={<CharacterTracker />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Footer />
+      </HashRouter>
     </MantineProvider>
   );
 }
