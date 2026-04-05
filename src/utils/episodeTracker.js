@@ -27,11 +27,36 @@ function unquote(s) {
   return s.trim().replace(/^"(.*)"$/, '$1');
 }
 
+function parseEpisodeAppearances(appearancesStr) {
+  const episodes = [];
+  if (!appearancesStr) return episodes;
+
+  const parts = appearancesStr.split(',').map(p => p.trim());
+  
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const [start, end] = part.split('-').map(n => parseInt(n.trim(), 10));
+      if (!isNaN(start) && !isNaN(end)) {
+        for (let i = start; i <= end; i++) {
+          episodes.push(String(i));
+        }
+      }
+    } else {
+      const ep = parseInt(part.trim(), 10);
+      if (!isNaN(ep)) {
+        episodes.push(String(ep));
+      }
+    }
+  }
+  
+  return episodes;
+}
+
 export function processEpisodeTracker(csvContent) {
   const lines = csvContent.split('\n');
 
-  let epIndex = -1;
   let characterIndex = -1;
+  let appearancesIndex = -1;
   const characterEpisodes = new Map();
   const allEpisodes = new Set();
 
@@ -41,32 +66,28 @@ export function processEpisodeTracker(csvContent) {
     const cols = parseCSVLine(line);
 
     // Detect header row
-    if (epIndex === -1 || characterIndex === -1) {
+    if (characterIndex === -1 || appearancesIndex === -1) {
       for (let i = 0; i < cols.length; i++) {
         const header = unquote(cols[i]).trim().toUpperCase();
-        if (header === 'EP') epIndex = i;
         if (header === 'CHARACTER') characterIndex = i;
+        if (header === 'EPISODE APPEARANCES') appearancesIndex = i;
       }
-      if (epIndex !== -1 && characterIndex !== -1) {
+      if (characterIndex !== -1 && appearancesIndex !== -1) {
         continue;
       }
     }
 
-    if (epIndex === -1 || characterIndex === -1) continue;
+    if (characterIndex === -1 || appearancesIndex === -1) continue;
 
-    const episode = unquote(cols[epIndex] || '').trim();
     const character = unquote(cols[characterIndex] || '').trim();
+    const appearancesStr = unquote(cols[appearancesIndex] || '').trim();
 
-    if (!episode || !character) continue;
+    if (!character || !appearancesStr) continue;
 
-    allEpisodes.add(episode);
-
-    if (!characterEpisodes.has(character)) {
-      characterEpisodes.set(character, []);
-    }
-    if (!characterEpisodes.get(character).includes(episode)) {
-      characterEpisodes.get(character).push(episode);
-    }
+    const episodes = parseEpisodeAppearances(appearancesStr);
+    
+    episodes.forEach(ep => allEpisodes.add(ep));
+    characterEpisodes.set(character, episodes);
   }
 
   if (characterEpisodes.size === 0) {
