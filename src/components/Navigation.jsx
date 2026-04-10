@@ -11,7 +11,7 @@ export function Navigation() {
         to="/"
         variant={location.pathname === '/' ? 'filled' : 'subtle'}
       >
-        Reaper Export
+        Marker Export
       </Button>
       <Button
         component={Link}
