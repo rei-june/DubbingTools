@@ -22,6 +22,12 @@ export function CharacterTracker() {
   const [status, setStatus] = useState({ type: null, message: '' });
   const [tableData, setTableData] = useState(null);
 
+  const handleClear = () => {
+    setFile(null);
+    setTableData(null);
+    setStatus({ type: null, message: '' });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -55,14 +61,15 @@ export function CharacterTracker() {
       tableData.sortedEpisodes,
       tableData.characterData
     );
-    const blob = new Blob([csvContent], { type: 'text/tab-separated-values' });
+    // Prepend BOM to help Excel detect UTF-8 and specify charset
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/tab-separated-values;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
 
-    // Generate output filename from input filename
+    // Generate output filename from input filename — use .tsv to reflect tab-separated content
     const originalName = file.name.replace(/\.csv$/i, '');
-    a.download = `${originalName} - Episode Tracker.csv`;
+    a.download = `${originalName} - Episode Tracker.tsv`;
 
     document.body.appendChild(a);
     a.click();
@@ -97,6 +104,7 @@ export function CharacterTracker() {
                 value={file}
                 onChange={setFile}
                 required
+                disabled={!!tableData}
                 description="Upload the script CSV file"
               />
 
@@ -109,9 +117,15 @@ export function CharacterTracker() {
                 </Alert>
               )}
 
-              <Button type="submit" disabled={!file}>
+              <Button type="submit" disabled={!file || !!tableData}>
                 Generate Table
               </Button>
+
+              {tableData && (
+                <Button color="yellow" onClick={handleClear}>
+                  Clear
+                </Button>
+              )}
             </Stack>
           </form>
         </Stack>
@@ -139,16 +153,7 @@ export function CharacterTracker() {
               >
                 <Table.Thead>
                   <Table.Tr>
-                    <Table.Th
-                      style={{
-                        position: 'sticky',
-                        left: 0,
-                        backgroundColor: 'var(--mantine-color-body)',
-                        zIndex: 1,
-                      }}
-                    >
-                      Episodes:
-                    </Table.Th>
+                    <Table.Th>Episodes:</Table.Th>
                     {tableData.characterData.map((cd) => (
                       <Table.Th key={cd.character}>{cd.character}</Table.Th>
                     ))}
@@ -157,16 +162,7 @@ export function CharacterTracker() {
                 <Table.Tbody>
                   {tableData.sortedEpisodes.map((ep, rowIndex) => (
                     <Table.Tr key={ep}>
-                      <Table.Td
-                        style={{
-                          position: 'sticky',
-                          left: 0,
-                          backgroundColor: 'var(--mantine-color-body)',
-                          fontWeight: 500,
-                        }}
-                      >
-                        Episode {ep} (#1.{ep})
-                      </Table.Td>
+                      <Table.Td style={{ fontWeight: 500 }}>Episode {ep} (#1.{ep})</Table.Td>
                       {tableData.characterData.map((cd) => {
                         // For each character column, show their Nth episode in the Nth row
                         if (rowIndex < cd.episodes.length) {

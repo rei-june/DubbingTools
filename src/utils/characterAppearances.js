@@ -27,6 +27,47 @@ function unquote(s) {
   return s.trim().replace(/^"(.*)"$/, '$1');
 }
 
+// Split CSV content into records while respecting quoted newlines
+function splitCSVRecords(csvContent) {
+  const records = [];
+  let cur = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csvContent.length; i++) {
+    const ch = csvContent[i];
+
+    // Preserve escaped quotes
+    if (ch === '"') {
+      cur += ch;
+      if (i + 1 < csvContent.length && csvContent[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    // Normalize CRLF handling: skip bare \r
+    if (ch === '\r') {
+      if (inQuotes) cur += ch; // keep if inside quotes
+      continue;
+    }
+
+    // Newline outside quotes separates records
+    if (ch === '\n' && !inQuotes) {
+      records.push(cur);
+      cur = '';
+      continue;
+    }
+
+    cur += ch;
+  }
+
+  if (cur.length > 0) records.push(cur);
+  return records;
+}
+
 function toRanges(episodes) {
   if (episodes.length === 0) return '0';
   
@@ -50,22 +91,22 @@ function toRanges(episodes) {
 
 export function processCharacterAppearances(scriptCsvContent, castCsvContent) {
   // Parse cast CSV to get character order (first column only)
-  const castLines = castCsvContent.split('\n');
+  const castLines = splitCSVRecords(castCsvContent);
   const characterOrder = [];
 
   for (const line of castLines) {
     if (!line.trim()) continue;
     const cols = parseCSVLine(line);
-    const character = unquote(cols[0] || '').trim();
+    const characterRaw = unquote(cols[0] || '').trim();
+    if (!characterRaw) continue;
+    // Skip header (case-insensitive)
+    if (characterRaw.trim().toLowerCase() === 'character') continue;
 
-    // Skip header
-    if (character === 'Character' || !character) continue;
-
-    characterOrder.push(character);
+    characterOrder.push(characterRaw);
   }
 
   // Parse script CSV to get episode data
-  const scriptLines = scriptCsvContent.split('\n');
+  const scriptLines = splitCSVRecords(scriptCsvContent);
   let epIndex = -1;
   let characterIndex = -1;
   const characterEpisodes = new Map();

@@ -23,6 +23,13 @@ export function EpisodeAppearances() {
   const [status, setStatus] = useState({ type: null, message: '' });
   const [tableData, setTableData] = useState(null);
 
+  const handleClear = () => {
+    setScriptFile(null);
+    setCastFile(null);
+    setTableData(null);
+    setStatus({ type: null, message: '' });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -95,6 +102,7 @@ export function EpisodeAppearances() {
                 icon={<IconUpload size={14} />}
                 accept=".csv"
                 value={scriptFile}
+                 disabled={!!tableData}
                 onChange={setScriptFile}
                 required
                 description="CSV with EP and CHARACTER columns"
@@ -106,6 +114,7 @@ export function EpisodeAppearances() {
                 icon={<IconUpload size={14} />}
                 accept=".csv"
                 value={castFile}
+                 disabled={!!tableData}
                 onChange={setCastFile}
                 required
                 description="CSV with Character column to determine output order"
@@ -120,9 +129,15 @@ export function EpisodeAppearances() {
                 </Alert>
               )}
 
-              <Button type="submit" disabled={!scriptFile || !castFile}>
+              <Button type="submit" disabled={!scriptFile || !castFile || !!tableData}>
                 Generate Table
               </Button>
+
+              {tableData && (
+                <Button color="yellow" onClick={handleClear}>
+                  Clear
+                </Button>
+              )}
             </Stack>
           </form>
         </Stack>

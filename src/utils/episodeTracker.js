@@ -52,8 +52,46 @@ function parseEpisodeAppearances(appearancesStr) {
   return episodes;
 }
 
-export function processEpisodeTracker(csvContent) {
-  const lines = csvContent.split('\n');
+// Split CSV content into records while respecting quoted newlines
+function splitCSVRecords(csvContent) {
+  const records = [];
+  let cur = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csvContent.length; i++) {
+    const ch = csvContent[i];
+
+    if (ch === '"') {
+      cur += ch;
+      if (i + 1 < csvContent.length && csvContent[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (ch === '\r') {
+      if (inQuotes) cur += ch;
+      continue;
+    }
+
+    if (ch === '\n' && !inQuotes) {
+      records.push(cur);
+      cur = '';
+      continue;
+    }
+
+    cur += ch;
+  }
+
+  if (cur.length > 0) records.push(cur);
+  return records;
+}
+
+export function processEpisodeTracker(csvContent, sort = false) {
+  const lines = splitCSVRecords(csvContent);
 
   let characterIndex = -1;
   let appearancesIndex = -1;
@@ -68,9 +106,9 @@ export function processEpisodeTracker(csvContent) {
     // Detect header row
     if (characterIndex === -1 || appearancesIndex === -1) {
       for (let i = 0; i < cols.length; i++) {
-        const header = unquote(cols[i]).trim().toUpperCase();
-        if (header === 'CHARACTER') characterIndex = i;
-        if (header === 'EPISODE APPEARANCES') appearancesIndex = i;
+        const header = unquote(cols[i]).trim().toLowerCase();
+        if (header === 'character' || header.includes('char')) characterIndex = i;
+        if (header === 'episode appearances' || header === 'episode' || header.startsWith('ep')) appearancesIndex = i;
       }
       if (characterIndex !== -1 && appearancesIndex !== -1) {
         continue;
@@ -113,13 +151,15 @@ export function processEpisodeTracker(csvContent) {
     }
   );
 
-  characterData.sort((a, b) => {
-    // Sort by number of episodes (descending), then by first appearance (ascending)
-    if (b.episodes.length !== a.episodes.length) {
-      return b.episodes.length - a.episodes.length;
-    }
-    return a.firstEpisode - b.firstEpisode;
-  });
+  if (sort) {
+    characterData.sort((a, b) => {
+      // Sort by number of episodes (descending), then by first appearance (ascending)
+      if (b.episodes.length !== a.episodes.length) {
+        return b.episodes.length - a.episodes.length;
+      }
+      return a.firstEpisode - b.firstEpisode;
+    });
+  }
 
   return { sortedEpisodes, characterData };
 }
