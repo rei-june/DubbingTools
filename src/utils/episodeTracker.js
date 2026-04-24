@@ -95,7 +95,9 @@ export function processEpisodeTracker(csvContent, sort = false) {
 
   let characterIndex = -1;
   let appearancesIndex = -1;
+  let actorIndex = -1;
   const characterEpisodes = new Map();
+  const characterActors = new Map();
   const allEpisodes = new Set();
 
   for (const line of lines) {
@@ -104,11 +106,12 @@ export function processEpisodeTracker(csvContent, sort = false) {
     const cols = parseCSVLine(line);
 
     // Detect header row
-    if (characterIndex === -1 || appearancesIndex === -1) {
+    if (characterIndex === -1 || appearancesIndex === -1 || actorIndex === -1) {
       for (let i = 0; i < cols.length; i++) {
         const header = unquote(cols[i]).trim().toLowerCase();
         if (header === 'character' || header.includes('char')) characterIndex = i;
         if (header === 'episode appearances' || header === 'episode' || header.startsWith('ep')) appearancesIndex = i;
+        if (header === 'actor' || header.includes('actor')) actorIndex = i;
       }
       if (characterIndex !== -1 && appearancesIndex !== -1) {
         continue;
@@ -119,13 +122,22 @@ export function processEpisodeTracker(csvContent, sort = false) {
 
     const character = unquote(cols[characterIndex] || '').trim();
     const appearancesStr = unquote(cols[appearancesIndex] || '').trim();
+    const actor = actorIndex !== -1 ? unquote(cols[actorIndex] || '').trim() : '';
 
-    if (!character || !appearancesStr) continue;
+    if (!character || !appearancesStr) {
+      // If character present but no appearances, still record actor if available
+      if (character && actor) characterActors.set(character, actor);
+      continue;
+    }
 
     const episodes = parseEpisodeAppearances(appearancesStr);
     
     episodes.forEach(ep => allEpisodes.add(ep));
     characterEpisodes.set(character, episodes);
+    if (actor) {
+      // store actor name for this character (first occurrence wins)
+      if (!characterActors.has(character)) characterActors.set(character, actor);
+    }
   }
 
   if (characterEpisodes.size === 0) {
@@ -147,6 +159,7 @@ export function processEpisodeTracker(csvContent, sort = false) {
         character: char,
         episodes: sortedEps,
         firstEpisode: parseInt(sortedEps[0], 10),
+        actor: characterActors.get(char) || '',
       };
     }
   );
@@ -170,6 +183,10 @@ export function generateEpisodeTrackerCSV(sortedEpisodes, characterData) {
   // Header row
   const headers = ['Episodes:', ...characterData.map((cd) => cd.character)];
   csvLines.push(headers.join('\t'));
+
+  // Actor row (first row of results)
+  const actorRow = ['', ...characterData.map((cd) => cd.actor || '')];
+  csvLines.push(actorRow.join('\t'));
 
   // Data rows
   sortedEpisodes.forEach((ep, rowIndex) => {

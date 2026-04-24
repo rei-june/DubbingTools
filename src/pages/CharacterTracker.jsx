@@ -158,17 +158,39 @@ export function CharacterTracker() {
                       <Table.Th key={cd.character}>{cd.character}</Table.Th>
                     ))}
                   </Table.Tr>
+                  {/* Actor row under headers */}
+                  <Table.Tr>
+                    <Table.Th></Table.Th>
+                    {tableData.characterData.map((cd) => (
+                      <Table.Th key={cd.character + '-actor'} style={{ fontWeight: 400 }}>
+                        {cd.actor || ''}
+                      </Table.Th>
+                    ))}
+                  </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                  {tableData.sortedEpisodes.map((ep, rowIndex) => (
+                  {tableData.sortedEpisodes.map((ep, rowIndex) => {
+                    const seen = new Set();
+                    return (
                     <Table.Tr key={ep}>
                       <Table.Td style={{ fontWeight: 500 }}>Episode {ep} (#1.{ep})</Table.Td>
                       {tableData.characterData.map((cd) => {
                         // For each character column, show their Nth episode in the Nth row
                         if (rowIndex < cd.episodes.length) {
                           const charEp = cd.episodes[rowIndex];
+                          const actor = cd.actor || '';
+                          let cellStyle = {};
+                          if (actor && charEp) {
+                            const key = `${actor}::${charEp}`;
+                            if (seen.has(key)) {
+                              cellStyle = { border: '2px solid #ff4d4f' }; // red border for duplicates
+                            } else {
+                              seen.add(key);
+                            }
+                          }
+
                           return (
-                            <Table.Td key={cd.character}>
+                            <Table.Td key={cd.character} style={cellStyle}>
                               Episode {charEp} (#1.{charEp})
                             </Table.Td>
                           );
@@ -177,7 +199,8 @@ export function CharacterTracker() {
                         }
                       })}
                     </Table.Tr>
-                  ))}
+                    );
+                  })}
                 </Table.Tbody>
               </Table>
             </ScrollArea>
